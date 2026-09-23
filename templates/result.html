@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Personalized Learning Path</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <div class="result-header">
+
+        <h1>Personalized Learning Path</h1>
+
+        <p>
+            Recommended learning resources based on the student's
+            profile and performance.
+        </p>
+
+    </div>
+
+
+    <div class="student-info">
+
+        <div class="info-box">
+
+            <span>Performance Score</span>
+
+            <strong>
+                {{ performance_score }}
+            </strong>
+
+        </div>
+
+
+        <div class="info-box">
+
+            <span>Performance Level</span>
+
+            <strong>
+                {% if performance_score < 0.60 %}
+                    Beginner
+                {% elif performance_score < 0.80 %}
+                    Intermediate
+                {% else %}
+                    Advanced
+                {% endif %}
+            </strong>
+
+        </div>
+
+
+        <div class="info-box">
+
+            <span>Preferred Topic</span>
+
+            <strong>
+                {{ preferred_topic }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <h2 class="section-title">
+        Recommended Courses
+    </h2>
+
+
+    {% if learning_path %}
+
+        <p>
+            {{ learning_path|length }} suitable course(s) found
+            for your learning profile.
+        </p>
+
+
+        {% for course in learning_path %}
+
+        <div class="course">
+
+            <div class="course-number">
+                RECOMMENDATION {{ loop.index }}
+            </div>
+
+
+            <h2>
+                {{ course.title }}
+            </h2>
+
+
+            <div class="course-details">
+
+                <div class="detail">
+
+                    <span>Course ID</span>
+
+                    <strong>
+                        {{ course.course_id }}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <span>Topic</span>
+
+                    <strong>
+                        {{ course.topic }}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <span>Difficulty</span>
+
+                    <strong>
+                        {{ course.difficulty }}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <span>Content Type</span>
+
+                    <strong>
+                        {{ course.content_type }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="similarity">
+
+                <span>
+                    AI Similarity Score:
+                </span>
+
+                <strong>
+                    {{ "%.3f"|format(course.similarity_score) }}
+                </strong>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+
+    {% else %}
+
+        <div class="course">
+
+            <p>
+                No suitable courses were found for this student profile.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    <a href="/" class="back-btn">
+        ← Try Another Student
+    </a>
+
+</div>
+
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>
