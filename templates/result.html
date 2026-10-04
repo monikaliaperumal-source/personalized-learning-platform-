@@ -7,216 +7,434 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="dark-theme result-view">
+    
+    <style>
+        :root {
+            --bg-base: #080b14;
+            --bg-surface: rgba(17, 24, 44, 0.85);
+            --bg-surface-hover: rgba(28, 38, 68, 0.95);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-accent: rgba(139, 92, 246, 0.4);
+            
+            --primary: #7c3aed;
+            --primary-light: #a855f7;
+            --cyan: #06b6d4;
+            --blue: #3b82f6;
+            --green: #10b981;
+            --amber: #f59e0b;
+            
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --text-muted: #64748b;
+            
+            --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Space Grotesk', monospace;
+            
+            --shadow-card: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+        }
 
-    <!-- Interactive Background -->
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #neuralCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.55;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            filter: blur(140px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.2;
+        }
+        .glow-1 { top: -100px; left: -100px; background: var(--primary); }
+        .glow-2 { bottom: -100px; right: -100px; background: var(--cyan); }
+
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px clamp(20px, 5vw, 60px);
+            background: rgba(8, 11, 20, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .brand-badge {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--cyan));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+        }
+        .brand-name { font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: #fff; }
+        .brand-name span { background: linear-gradient(90deg, var(--cyan), var(--primary-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand-sub { font-size: 9px; letter-spacing: 1.5px; font-weight: 700; color: var(--text-muted); }
+
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .ghost-link, .print-btn {
+            padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700;
+            text-decoration: none; cursor: pointer; border: none; transition: all 0.2s;
+        }
+        .ghost-link { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border-glass); }
+        .print-btn { background: linear-gradient(135deg, var(--primary), var(--cyan)); color: #fff; }
+        .ghost-link:hover, .print-btn:hover { transform: translateY(-2px); }
+
+        /* Hero */
+        .result-hero {
+            text-align: center; max-width: 850px;
+            margin: 45px auto 35px; padding: 0 20px;
+            position: relative; z-index: 2;
+        }
+        .success-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px;
+            background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 11px; font-weight: 700; color: var(--green);
+            letter-spacing: 1px; margin-bottom: 16px;
+        }
+        .result-hero h1 {
+            font-family: var(--font-mono); font-size: clamp(32px, 5vw, 52px);
+            font-weight: 700; letter-spacing: -1.5px; margin-bottom: 12px;
+        }
+        .result-hero h1 span {
+            background: linear-gradient(135deg, #fff 30%, var(--primary-light) 70%, var(--cyan) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .result-hero p { font-size: 15px; color: var(--text-sub); }
+
+        /* Content */
+        .result-container {
+            max-width: 1100px; margin: 0 auto 80px; padding: 0 24px;
+            position: relative; z-index: 2;
+        }
+
+        /* Bento Grid */
+        .bento-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 16px; margin-bottom: 45px;
+        }
+        .bento-card {
+            background: var(--bg-surface); border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md); padding: 20px;
+            backdrop-filter: blur(20px); box-shadow: var(--shadow-card);
+        }
+        .bento-icon { font-size: 24px; margin-bottom: 10px; }
+        .bento-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: var(--text-muted); display: block; }
+        .bento-val { font-size: 20px; font-family: var(--font-mono); color: #fff; margin-top: 4px; display: block; }
+        .text-green { color: var(--green) !important; }
+        .text-blue { color: var(--blue) !important; }
+        .text-purple { color: var(--primary-light) !important; }
+        .text-cyan { color: var(--cyan) !important; }
+
+        /* Timeline Roadmap */
+        .timeline-section-title {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-bottom: 25px;
+        }
+        .timeline-section-title h2 { font-size: 22px; font-weight: 700; color: #fff; }
+        .timeline-section-title span { font-size: 11px; font-weight: 700; color: var(--primary-light); letter-spacing: 1.5px; }
+
+        .timeline-wrapper {
+            position: relative; display: flex; flex-direction: column; gap: 20px;
+        }
+        .timeline-line {
+            position: absolute; top: 35px; bottom: 35px; left: 27px; width: 2px;
+            background: linear-gradient(180deg, var(--primary-light), var(--cyan), transparent);
+        }
+
+        .timeline-item {
+            display: grid; grid-template-columns: 56px 1fr; gap: 20px;
+            align-items: flex-start;
+        }
+        .node-bubble {
+            width: 56px; height: 56px; border-radius: 16px;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(6, 182, 212, 0.3));
+            border: 1px solid var(--border-accent);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-mono); font-weight: 800; color: #fff;
+            font-size: 16px; box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+            z-index: 2;
+        }
+
+        .course-card {
+            background: var(--bg-surface); border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg); padding: 26px;
+            backdrop-filter: blur(25px); box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+        }
+        .course-card:hover {
+            border-color: var(--primary-light);
+            transform: translateX(6px);
+            background: var(--bg-surface-hover);
+        }
+
+        .course-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            gap: 16px;
+        }
+        .course-id {
+            font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+            color: var(--cyan); letter-spacing: 1.5px;
+        }
+        .course-title { font-size: 20px; font-weight: 700; color: #fff; margin-top: 4px; }
+
+        .match-score { text-align: right; }
+        .match-val { font-family: var(--font-mono); font-size: 22px; font-weight: 800; color: var(--green); }
+        .match-lbl { font-size: 9px; font-weight: 800; letter-spacing: 1px; color: var(--text-muted); }
+
+        .chips-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+        .chip { padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+        .chip-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .chip-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .chip-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .match-bar-track {
+            height: 4px; background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+        }
+        .match-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--green));
+        }
+
+        .reason-box {
+            display: flex; gap: 10px; padding: 12px 16px;
+            border-radius: var(--radius-sm); background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-glass); font-size: 12px; color: var(--text-sub);
+        }
+
+        /* Bottom Actions */
+        .bottom-nav {
+            display: flex; justify-content: center; gap: 16px; margin-top: 50px;
+        }
+        .btn-large {
+            padding: 14px 28px; border-radius: var(--radius-md); font-weight: 700;
+            font-size: 13px; text-decoration: none; cursor: pointer; border: none;
+            transition: all 0.25s ease;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--cyan)); color: #fff; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border-glass); }
+        .btn-large:hover { transform: translateY(-2px); }
+
+        .footer {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 26px clamp(20px, 5vw, 60px); border-top: 1px solid var(--border-glass);
+            background: rgba(8, 11, 20, 0.95); font-size: 11px; color: var(--text-muted);
+            position: relative; z-index: 2;
+        }
+
+        @media (max-width: 800px) {
+            .bento-grid { grid-template-columns: 1fr 1fr; }
+            .timeline-item { grid-template-columns: 1fr; }
+            .timeline-line { display: none; }
+            .bottom-nav { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
     <canvas id="neuralCanvas"></canvas>
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
 
-    <!-- ================= NAVBAR ================= -->
+    <!-- NAVBAR -->
     <header class="navbar">
-        <a href="/" class="brand brand-link">
-            <div class="brand-badge">
-                <span class="pulse-ring"></span>
-                <span class="brand-emoji">🎓</span>
-            </div>
+        <a href="/" class="brand">
+            <div class="brand-badge">🎓</div>
             <div>
-                <div class="brand-name">LearnPath<span class="gradient-text">.AI</span></div>
-                <div class="brand-subtitle">RECOMMENDATION MATRIX</div>
+                <div class="brand-name">LearnPath<span>.AI</span></div>
+                <div class="brand-sub">NEURAL RECOMMENDATION MATRIX</div>
             </div>
         </a>
 
-        <div class="nav-controls">
-            <a href="/" class="ghost-btn">← Recalibrate Profile</a>
-            <button onclick="window.print()" class="icon-btn-highlight">🖨️ Export PDF</button>
+        <div class="nav-actions">
+            <a href="/" class="ghost-link">← Recalibrate</a>
+            <button onclick="window.print()" class="print-btn">🖨️ Export PDF</button>
         </div>
     </header>
 
-    <!-- ================= HERO ================= -->
-    <section class="result-hero-banner">
+    <!-- HERO -->
+    <section class="result-hero">
         <div class="success-pill">
-            <span class="sparkle">✦</span> PATHWAY SYNTHESIZED SUCCESSFULLY
+            ✦ PATHWAY SYNTHESIZED SUCCESSFULLY
         </div>
-        <h1 class="hero-title">
-            Your Custom <span class="animated-gradient-text">{{ preferred_topic }}</span> Pathway
+        <h1>
+            Your Custom <span>{{ preferred_topic }}</span> Pathway
         </h1>
-        <p class="hero-sub">
-            Our KNN model matched your profile with optimal curriculum modules ordered sequentially for maximum retention.
+        <p>
+            Our KNN algorithm matched your profile against our curriculum matrix and arranged the optimal sequence for your goals.
         </p>
     </section>
 
-    <!-- ================= MAIN CONTENT ================= -->
-    <main class="result-layout">
+    <!-- MAIN CONTENT -->
+    <main class="result-container">
 
-        <!-- METRIC TILES (BENTO GRID) -->
-        <section class="bento-metrics">
-            <div class="bento-tile">
+        <!-- BENTO METRICS -->
+        <section class="bento-grid">
+            <div class="bento-card">
                 <div class="bento-icon">📊</div>
-                <div>
-                    <span class="bento-label">PROFILE SCORE</span>
-                    <strong class="bento-val">{{ "%.0f"|format(performance_score * 100) }}%</strong>
-                </div>
-                <div class="bento-bar">
-                    <div class="bento-fill" style="width: {{ performance_score * 100 }}%;"></div>
-                </div>
+                <span class="bento-label">PROFILE SCORE</span>
+                <strong class="bento-val">{{ "%.0f"|format(performance_score * 100) }}%</strong>
             </div>
 
-            <div class="bento-tile">
+            <div class="bento-card">
                 <div class="bento-icon">🧠</div>
-                <div>
-                    <span class="bento-label">COGNITIVE LEVEL</span>
-                    {% if performance_score < 0.60 %}
-                        <strong class="bento-val text-green">Novice Explorer</strong>
-                    {% elif performance_score < 0.80 %}
-                        <strong class="bento-val text-blue">Rising Scholar</strong>
-                    {% else %}
-                        <strong class="bento-val text-purple">Apex Master</strong>
-                    {% endif %}
-                </div>
+                <span class="bento-label">COGNITIVE TIER</span>
+                {% if performance_score < 0.60 %}
+                    <strong class="bento-val text-green">Novice Explorer</strong>
+                {% elif performance_score < 0.80 %}
+                    <strong class="bento-val text-blue">Rising Scholar</strong>
+                {% else %}
+                    <strong class="bento-val text-purple">Apex Master</strong>
+                {% endif %}
             </div>
 
-            <div class="bento-tile">
+            <div class="bento-card">
                 <div class="bento-icon">🎯</div>
-                <div>
-                    <span class="bento-label">FOCUS DOMAIN</span>
-                    <strong class="bento-val text-accent">{{ preferred_topic }}</strong>
-                </div>
+                <span class="bento-label">FOCUS DOMAIN</span>
+                <strong class="bento-val text-cyan">{{ preferred_topic }}</strong>
             </div>
 
-            <div class="bento-tile">
+            <div class="bento-card">
                 <div class="bento-icon">📚</div>
-                <div>
-                    <span class="bento-label">MODULES MATCHED</span>
-                    <strong class="bento-val">{{ learning_path|length }} Steps</strong>
-                </div>
+                <span class="bento-label">MODULES MATCHED</span>
+                <strong class="bento-val">{{ learning_path|length }} Steps</strong>
             </div>
         </section>
 
-        <!-- INTERACTIVE ROADMAP -->
-        <section class="pathway-section mt-5">
-            <div class="section-top-bar">
-                <div>
-                    <span class="sub-tag">SEQUENTIAL TIMELINE</span>
-                    <h2>Recommended Learning Tree</h2>
-                </div>
-                <div class="filter-pills">
-                    <span class="active-badge">KNN Ranked</span>
-                </div>
+        <!-- TIMELINE ROADMAP -->
+        <div class="timeline-section-title">
+            <div>
+                <span>SEQUENTIAL MILESTONES</span>
+                <h2>Recommended Skill Trajectory</h2>
             </div>
+        </div>
 
-            {% if learning_path %}
-            <div class="timeline-container">
-                <div class="timeline-spine"></div>
+        {% if learning_path %}
+        <div class="timeline-wrapper">
+            <div class="timeline-line"></div>
 
-                {% for course in learning_path %}
-                <div class="timeline-node" style="animation-delay: {{ loop.index * 0.15 }}s;">
-                    <!-- Step Indicator Bubble -->
-                    <div class="node-indicator">
-                        <span>{{ "%02d"|format(loop.index) }}</span>
+            {% for course in learning_path %}
+            <div class="timeline-item">
+                <div class="node-bubble">{{ "%02d"|format(loop.index) }}</div>
+
+                <div class="course-card">
+                    <div class="course-header">
+                        <div>
+                            <span class="course-id">{{ course.course_id }}</span>
+                            <h3 class="course-title">{{ course.title }}</h3>
+                        </div>
+                        <div class="match-score">
+                            <div class="match-val">{{ "%.0f"|format(course.similarity_score * 100) }}%</div>
+                            <span class="match-lbl">MATCH</span>
+                        </div>
                     </div>
 
-                    <!-- Interactive Card -->
-                    <div class="course-node-card">
-                        <div class="card-glass-top">
-                            <div class="course-meta">
-                                <span class="course-badge-id">{{ course.course_id }}</span>
-                                <h3 class="course-title">{{ course.title }}</h3>
-                            </div>
-                            <div class="match-ring-box">
-                                <div class="match-percent">{{ "%.0f"|format(course.similarity_score * 100) }}%</div>
-                                <span class="match-tag">MATCH</span>
-                            </div>
-                        </div>
+                    <div class="chips-row">
+                        <span class="chip chip-blue">🎯 {{ course.topic }}</span>
+                        <span class="chip chip-green">
+                            {% if course.difficulty == "Beginner" %}🌱 Beginner
+                            {% elif course.difficulty == "Intermediate" %}📘 Intermediate
+                            {% else %}🚀 Advanced{% endif %}
+                        </span>
+                        <span class="chip chip-amber">
+                            {% if course.content_type == "Video" %}🎥 Video Masterclass
+                            {% elif course.content_type == "Quiz" %}🧩 Interactive Challenge
+                            {% else %}📖 Deep Dive Article{% endif %}
+                        </span>
+                    </div>
 
-                        <div class="tag-row">
-                            <span class="chip chip-topic">🎯 {{ course.topic }}</span>
-                            <span class="chip chip-diff">
-                                {% if course.difficulty == "Beginner" %}🌱 Beginner
-                                {% elif course.difficulty == "Intermediate" %}📘 Intermediate
-                                {% else %}🚀 Advanced{% endif %}
-                            </span>
-                            <span class="chip chip-type">
-                                {% if course.content_type == "Video" %}🎥 Video Masterclass
-                                {% elif course.content_type == "Quiz" %}🧩 Interactive Challenge
-                                {% else %}📖 Deep Dive Article{% endif %}
-                            </span>
-                        </div>
+                    <div class="match-bar-track">
+                        <div class="match-bar-fill" style="width: {{ course.similarity_score * 100 }}%;"></div>
+                    </div>
 
-                        <!-- Match Meter -->
-                        <div class="node-meter">
-                            <div class="node-meter-fill" style="width: {{ course.similarity_score * 100 }}%;"></div>
-                        </div>
-
-                        <!-- Explainer Accordion -->
-                        <div class="recommendation-reason">
-                            <span class="bulb-icon">💡</span>
-                            <p>
-                                Selected based on your <strong>{{ preferred_topic }}</strong> focus and calculated cosine affinity of 
-                                <strong>{{ "%.1f"|format(course.similarity_score * 100) }}%</strong> matching your cognitive state.
-                            </p>
-                        </div>
+                    <div class="reason-box">
+                        <span>💡</span>
+                        <p>
+                            Matches your <strong>{{ preferred_topic }}</strong> curriculum preference with a calculated affinity of 
+                            <strong>{{ "%.1f"|format(course.similarity_score * 100) }}%</strong> matching your cognitive level.
+                        </p>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-
-            {% else %}
-            <div class="empty-state-box">
-                <div class="empty-icon">🔍</div>
-                <h3>No Matching Modules Discovered</h3>
-                <p>Try adjusting your topic preference or widening your performance parameters.</p>
-                <a href="/" class="primary-btn mt-3">← Reconfigure Profile</a>
-            </div>
-            {% endif %}
-        </section>
-
-        <!-- HOW KNN WORKS (INTERACTIVE PROCESS) -->
-        <section class="pipeline-section mt-5">
-            <h2 class="text-center mb-4">Neural Recommendation Pipeline</h2>
-            <div class="pipeline-grid">
-                <div class="pipe-card">
-                    <div class="pipe-num">01</div>
-                    <div class="pipe-icon">👤</div>
-                    <h4>Vector Encoding</h4>
-                    <p>Standardizes your age, education, and modalities into a normalized mathematical vector.</p>
-                </div>
-                <div class="pipe-card">
-                    <div class="pipe-num">02</div>
-                    <div class="pipe-icon">📐</div>
-                    <h4>Cosine Geometry</h4>
-                    <p>Calculates multi-dimensional distances between learner vectors and course embeddings.</p>
-                </div>
-                <div class="pipe-card">
-                    <div class="pipe-num">03</div>
-                    <div class="pipe-icon">🤖</div>
-                    <h4>K-Nearest Match</h4>
-                    <p>Clusters top-K optimal course entities with highest affinity and lowest cognitive friction.</p>
-                </div>
-                <div class="pipe-card">
-                    <div class="pipe-num">04</div>
-                    <div class="pipe-icon">🚀</div>
-                    <h4>Adaptive Sequence</h4>
-                    <p>Ranks courses into an actionable milestone trajectory designed for maximum engagement.</p>
-                </div>
-            </div>
-        </section>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <!-- ACTIONS -->
-        <div class="bottom-actions">
-            <a href="/" class="secondary-glow-btn">← Generate Another Learning Path</a>
-            <button onclick="window.print()" class="primary-glow-btn">🖨️ Download Learning Path Blueprint</button>
+        <div class="bottom-nav">
+            <a href="/" class="btn-large btn-secondary">← Reconfigure Preferences</a>
+            <button onclick="window.print()" class="btn-large btn-primary">🖨️ Save Learning Roadmap</button>
         </div>
 
     </main>
 
-    <footer class="cyber-footer">
-        <div><strong>LearnPath.AI</strong> • Personalized Knowledge Discovery</div>
-        <div>Machine Learning Powered • K-Nearest Neighbors</div>
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div><strong>LearnPath.AI</strong> • Cognitive Neural Curriculum</div>
+        <div>K-Nearest Neighbors Recommendation System</div>
     </footer>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        const canvas = document.getElementById("neuralCanvas");
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            let w = canvas.width = window.innerWidth;
+            let h = canvas.height = window.innerHeight;
+            window.addEventListener("resize", () => {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            });
+            const pts = Array.from({length: 35}, () => ({
+                x: Math.random() * w, y: Math.random() * h,
+                vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5
+            }));
+            function loop() {
+                ctx.clearRect(0, 0, w, h);
+                pts.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > w) p.vx *= -1;
+                    if (p.y < 0 || p.y > h) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(168, 85, 247, 0.4)";
+                    ctx.fill();
+                });
+                for (let i = 0; i < pts.length; i++) {
+                    for (let j = i + 1; j < pts.length; j++) {
+                        const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+                        if (d < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(pts[i].x, pts[i].y);
+                            ctx.lineTo(pts[j].x, pts[j].y);
+                            ctx.strokeStyle = `rgba(124, 58, 237, ${0.2 * (1 - d/120)})`;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+    </script>
 </body>
 </html>
