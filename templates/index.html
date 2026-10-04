@@ -1,214 +1,350 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Personalized Learning Platform</title>
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
+    <title>LearnPath AI • Interactive Learning Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+<body class="dark-theme">
 
-<body>
+    <!-- Interactive Canvas Background -->
+    <canvas id="neuralCanvas"></canvas>
 
-<div class="container">
+    <!-- Glow Orbs -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
 
-    <div class="header">
-        <h1>Personalized Learning Platform</h1>
-        <p>
-            AI-based learning path recommendation based on student profile
-            and performance.
-        </p>
-    </div>
-
-
-    <div class="form-card">
-
-        <h2>Student Information</h2>
-
-        <form action="/predict" method="POST">
-
-            <div class="form-grid">
-
-                <div class="form-group">
-                    <label>Age</label>
-                    <input type="number"
-                           name="age"
-                           value="20"
-                           required>
-                </div>
-
-
-                <div class="form-group">
-                    <label>Education Level</label>
-
-                    <select name="education_level">
-                        <option value="High School">
-                            High School
-                        </option>
-
-                        <option value="Bachelor" selected>
-                            Bachelor
-                        </option>
-
-                        <option value="Master">
-                            Master
-                        </option>
-
-                        <option value="PhD">
-                            PhD
-                        </option>
-                    </select>
-                </div>
-
-
-                <div class="form-group">
-                    <label>Learning Style</label>
-
-                    <select name="learning_style">
-
-                        <option value="Visual" selected>
-                            Visual
-                        </option>
-
-                        <option value="Auditory">
-                            Auditory
-                        </option>
-
-                        <option value="Reading">
-                            Reading
-                        </option>
-
-                        <option value="Kinesthetic">
-                            Kinesthetic
-                        </option>
-
-                    </select>
-                </div>
-
-
-                <div class="form-group">
-                    <label>Preferred Topic</label>
-
-                    <select name="preferred_topics">
-
-                        <option value="AI" selected>
-                            Artificial Intelligence
-                        </option>
-
-                        <option value="Data Science">
-                            Data Science
-                        </option>
-
-                        <option value="Math">
-                            Mathematics
-                        </option>
-
-                        <option value="Art">
-                            Art
-                        </option>
-
-                        <option value="History">
-                            History
-                        </option>
-
-                        <option value="Music">
-                            Music
-                        </option>
-
-                    </select>
-                </div>
-
-
-                <div class="form-group">
-                    <label>Assessment Score</label>
-
-                    <input type="number"
-                           name="assessment_score"
-                           value="75"
-                           min="0"
-                           max="100"
-                           required>
-                </div>
-
-
-                <div class="form-group">
-                    <label>Feedback Score</label>
-
-                    <input type="number"
-                           name="feedback_score"
-                           value="4.2"
-                           min="0"
-                           max="5"
-                           step="0.1"
-                           required>
-                </div>
-
-
-                <div class="form-group">
-                    <label>Engagement Score</label>
-
-                    <input type="number"
-                           name="engagement_score"
-                           value="0.70"
-                           min="0"
-                           max="1"
-                           step="0.01"
-                           required>
-                </div>
-
-
-                <div class="form-group">
-                    <label>Completion Status</label>
-
-                    <select name="completion_status">
-
-                        <option value="Not Started">
-                            Not Started
-                        </option>
-
-                        <option value="In Progress" selected>
-                            In Progress
-                        </option>
-
-                        <option value="Completed">
-                            Completed
-                        </option>
-
-                    </select>
-                </div>
-
-
-                <div class="form-group full-width">
-
-                    <label>Performance Score</label>
-
-                    <input type="number"
-                           name="performance_score"
-                           value="0.68"
-                           min="0"
-                           max="1"
-                           step="0.01"
-                           required>
-
-                </div>
-
+    <!-- ================= NAVBAR ================= -->
+    <header class="navbar">
+        <div class="brand">
+            <div class="brand-badge">
+                <span class="pulse-ring"></span>
+                <span class="brand-emoji">⚡</span>
             </div>
+            <div>
+                <div class="brand-name">LearnPath<span class="gradient-text">.AI</span></div>
+                <div class="brand-subtitle">NEURAL RECOMMENDATION MATRIX</div>
+            </div>
+        </div>
 
-
-            <button type="submit" class="submit-btn">
-                Generate Personalized Learning Path
+        <div class="nav-controls">
+            <button type="button" id="soundToggle" class="icon-btn" title="Toggle UI Sound Effects">
+                <span id="soundIcon">🔊</span>
+                <span class="btn-tooltip">Sound FX</span>
             </button>
+            <div class="system-status">
+                <span class="status-beacon"></span>
+                <span class="status-label">KNN ENGINE: ACTIVE</span>
+            </div>
+        </div>
+    </header>
 
-        </form>
+    <!-- ================= HERO ================= -->
+    <section class="hero-section">
+        <div class="hero-tag">
+            <span class="sparkle">✦</span> ML-POWERED ADAPTIVE CURRICULUM
+        </div>
+        <h1 class="hero-title">
+            Architect Your <br>
+            <span class="animated-gradient-text">Future Intellect.</span>
+        </h1>
+        <p class="hero-sub">
+            Calibrate your cognitive profile, performance metrics, and learning modalities to construct a hyper-personalized knowledge pathway.
+        </p>
+    </section>
 
-    </div>
+    <!-- ================= MAIN INTERFACE ================= -->
+    <main class="app-layout">
 
-</div>
+        <!-- FORM SIDE -->
+        <div class="form-column">
+            <form action="/predict" method="POST" id="learningForm" class="interactive-form">
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+                <!-- STEP 1: DEMOGRAPHICS & MODALITY -->
+                <div class="glass-card form-step" data-step="1">
+                    <div class="card-header">
+                        <div class="step-badge">01</div>
+                        <div>
+                            <h2>Learner Identity & Mode</h2>
+                            <p>Configure your foundational student attributes</p>
+                        </div>
+                    </div>
 
+                    <div class="input-row">
+                        <!-- Age Numeric Dial -->
+                        <div class="custom-input-group">
+                            <label for="age">Learner Age</label>
+                            <div class="number-stepper">
+                                <button type="button" class="stepper-btn" onclick="adjustValue('age', -1)">−</button>
+                                <input type="number" id="age" name="age" min="5" max="100" value="20" required>
+                                <button type="button" class="stepper-btn" onclick="adjustValue('age', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Education Tier Dropdown -->
+                        <div class="custom-input-group">
+                            <label for="education_level">Education Milestone</label>
+                            <div class="custom-select-wrapper">
+                                <select id="education_level" name="education_level" required>
+                                    <option value="High School">High School</option>
+                                    <option value="Bachelor" selected>Bachelor's Degree</option>
+                                    <option value="Master">Master's Degree</option>
+                                    <option value="PhD">Doctorate / PhD</option>
+                                </select>
+                                <span class="select-arrow">▾</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Learning Style Chips (Visual Select) -->
+                    <div class="custom-input-group mt-4">
+                        <label>Preferred Learning Modality</label>
+                        <input type="hidden" id="learning_style" name="learning_style" value="Visual">
+                        <div class="style-grid">
+                            <div class="style-card active" data-style="Visual" onclick="selectStyle('Visual', this)">
+                                <div class="style-icon">👁️</div>
+                                <div class="style-title">Visual</div>
+                                <div class="style-desc">Diagrams & Schematics</div>
+                            </div>
+                            <div class="style-card" data-style="Auditory" onclick="selectStyle('Auditory', this)">
+                                <div class="style-icon">🎧</div>
+                                <div class="style-title">Auditory</div>
+                                <div class="style-desc">Lectures & Discussions</div>
+                            </div>
+                            <div class="style-card" data-style="Reading" onclick="selectStyle('Reading', this)">
+                                <div class="style-icon">📖</div>
+                                <div class="style-title">Reading</div>
+                                <div class="style-desc">Textbooks & Documentation</div>
+                            </div>
+                            <div class="style-card" data-style="Kinesthetic" onclick="selectStyle('Kinesthetic', this)">
+                                <div class="style-icon">✋</div>
+                                <div class="style-title">Kinesthetic</div>
+                                <div class="style-desc">Hands-on Sandbox Projects</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preferred Topic Hex/Grid Select -->
+                    <div class="custom-input-group mt-4">
+                        <label>Knowledge Domain Focus</label>
+                        <input type="hidden" id="preferred_topics" name="preferred_topics" value="AI">
+                        <div class="topic-pills">
+                            <button type="button" class="topic-pill active" data-topic="AI" onclick="selectTopic('AI', this)">
+                                <span>🤖</span> Artificial Intelligence
+                            </button>
+                            <button type="button" class="topic-pill" data-topic="Data Science" onclick="selectTopic('Data Science', this)">
+                                <span>📊</span> Data Science
+                            </button>
+                            <button type="button" class="topic-pill" data-topic="Math" onclick="selectTopic('Math', this)">
+                                <span>🔢</span> Mathematics
+                            </button>
+                            <button type="button" class="topic-pill" data-topic="History" onclick="selectTopic('History', this)">
+                                <span>🏛️</span> World History
+                            </button>
+                            <button type="button" class="topic-pill" data-topic="Art" onclick="selectTopic('Art', this)">
+                                <span>🎨</span> Creative Arts
+                            </button>
+                            <button type="button" class="topic-pill" data-topic="Music" onclick="selectTopic('Music', this)">
+                                <span>🎵</span> Music Theory
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: METRICS & READINESS -->
+                <div class="glass-card form-step mt-4" data-step="2">
+                    <div class="card-header">
+                        <div class="step-badge">02</div>
+                        <div>
+                            <h2>Performance & Cognition Analytics</h2>
+                            <p>Calibrate your skill level and test ratings</p>
+                        </div>
+                    </div>
+
+                    <!-- Performance Slider with Radial Dial Display -->
+                    <div class="slider-container">
+                        <div class="slider-top">
+                            <div>
+                                <span class="metric-title">Overall Performance Score</span>
+                                <div class="tier-pill" id="tierDisplay">🔵 Intermediate Scholar</div>
+                            </div>
+                            <div class="gauge-display" id="gaugeDisplay">68%</div>
+                        </div>
+
+                        <div class="slider-track-wrap">
+                            <input type="range" id="performance_score" name="performance_score" min="0" max="1" step="0.01" value="0.68">
+                            <div class="slider-fill-bar" id="sliderFillBar"></div>
+                        </div>
+
+                        <div class="slider-ticks">
+                            <span>0% (Foundation)</span>
+                            <span>50% (Proficient)</span>
+                            <span>100% (Mastery)</span>
+                        </div>
+                    </div>
+
+                    <!-- Micro Score Inputs -->
+                    <div class="score-cards-row mt-4">
+                        <div class="micro-score-card">
+                            <div class="micro-label">Assessment Score</div>
+                            <div class="micro-input-wrap">
+                                <input type="number" id="assessment_score" name="assessment_score" min="0" max="100" value="75" required>
+                                <span class="unit">/ 100</span>
+                            </div>
+                        </div>
+
+                        <div class="micro-score-card">
+                            <div class="micro-label">Feedback Rating</div>
+                            <div class="micro-input-wrap">
+                                <input type="number" id="feedback_score" name="feedback_score" min="0" max="5" step="0.1" value="4.2" required>
+                                <span class="unit">/ 5.0</span>
+                            </div>
+                        </div>
+
+                        <div class="micro-score-card">
+                            <div class="micro-label">Engagement Index</div>
+                            <div class="micro-input-wrap">
+                                <input type="number" id="engagement_score" name="engagement_score" min="0" max="1" step="0.01" value="0.70" required>
+                                <span class="unit">Index</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: JOURNEY STATUS & SUBMIT -->
+                <div class="glass-card form-step mt-4" data-step="3">
+                    <div class="card-header">
+                        <div class="step-badge">03</div>
+                        <div>
+                            <h2>Current Journey Phase</h2>
+                            <p>Where are you in this subject right now?</p>
+                        </div>
+                    </div>
+
+                    <div class="status-cards-grid">
+                        <label class="radio-card">
+                            <input type="radio" name="completion_status" value="Not Started">
+                            <div class="radio-card-content">
+                                <div class="radio-icon">🌱</div>
+                                <div>
+                                    <strong>Initiation</strong>
+                                    <p>First time exploring this subject</p>
+                                </div>
+                                <div class="check-circle">✓</div>
+                            </div>
+                        </label>
+
+                        <label class="radio-card">
+                            <input type="radio" name="completion_status" value="In Progress" checked>
+                            <div class="radio-card-content">
+                                <div class="radio-icon">⚡</div>
+                                <div>
+                                    <strong>Active Flow</strong>
+                                    <p>Actively studying and practicing</p>
+                                </div>
+                                <div class="check-circle">✓</div>
+                            </div>
+                        </label>
+
+                        <label class="radio-card">
+                            <input type="radio" name="completion_status" value="Completed">
+                            <div class="radio-card-content">
+                                <div class="radio-icon">🏆</div>
+                                <div>
+                                    <strong>Consolidation</strong>
+                                    <p>Solid foundation, ready for advanced</p>
+                                </div>
+                                <div class="check-circle">✓</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Submit Action Bar -->
+                    <div class="submit-action-box mt-4">
+                        <div class="security-badge">
+                            <span>🛡️</span> Zero telemetry sharing • KNN strictly client-oriented recommendation
+                        </div>
+                        <button type="submit" id="generateButton" class="magnetic-btn">
+                            <span class="btn-glow"></span>
+                            <span class="btn-content">
+                                <span class="btn-icon">⚡</span>
+                                <span>Synthesize Learning Path</span>
+                                <span class="btn-arrow">→</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- LIVE PERSONA PASSPORT (INTERACTIVE SIDEBAR) -->
+        <aside class="persona-column">
+            <div class="passport-card sticky-card">
+                <div class="passport-glow"></div>
+                <div class="passport-header">
+                    <div class="hologram-chip"></div>
+                    <span class="passport-tag">LIVE LEARNER PASSPORT</span>
+                </div>
+
+                <div class="avatar-center">
+                    <div class="avatar-ring">
+                        <div class="avatar-core" id="avatarEmoji">🤖</div>
+                    </div>
+                    <h3 id="passportTopic">Artificial Intelligence</h3>
+                    <span class="badge-role" id="passportTier">Intermediate Scholar</span>
+                </div>
+
+                <div class="passport-stats">
+                    <div class="p-stat">
+                        <span class="p-label">AGE / LVL</span>
+                        <strong id="passportAge">20 • Bachelor</strong>
+                    </div>
+                    <div class="p-stat">
+                        <span class="p-label">STYLE</span>
+                        <strong id="passportStyle">👁️ Visual</strong>
+                    </div>
+                    <div class="p-stat">
+                        <span class="p-label">POWER SCORE</span>
+                        <strong id="passportScore" class="glow-val">68%</strong>
+                    </div>
+                    <div class="p-stat">
+                        <span class="p-label">STATE</span>
+                        <strong id="passportStatus">⚡ Active Flow</strong>
+                    </div>
+                </div>
+
+                <div class="passport-radar">
+                    <div class="radar-bar-label">
+                        <span>Cognitive Readiness</span>
+                        <span id="readinessVal">72%</span>
+                    </div>
+                    <div class="radar-track">
+                        <div class="radar-fill" id="readinessFill" style="width: 72%;"></div>
+                    </div>
+                </div>
+
+                <div class="passport-footer">
+                    <span>KNN Vector: Ready</span>
+                    <span class="live-dot"></span>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="cyber-footer">
+        <div class="footer-brand">
+            <strong>LearnPath.AI</strong> • Cognitive Neural Recommendation Platform
+        </div>
+        <div class="footer-tag">Powered by Cosine Similarity & K-Nearest Neighbors</div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
